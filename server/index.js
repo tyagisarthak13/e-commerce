@@ -2,6 +2,7 @@ import express from "express";
 import cloudinary from "cloudinary";
 import dotenv from "dotenv";
 import connectDB from "./utils/db.js";
+import cors from "cors";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ cloudinary.v2.config({
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 const port = process.env.PORT;
 
