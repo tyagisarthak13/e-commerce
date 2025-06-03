@@ -9,6 +9,8 @@ import Verify from "./pages/Verify";
 import Loading from "./components/Loading";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
+import NotFound from "./pages/NotFound";
+import ProductPage from "./pages/ProductPage";
 
 const App = () => {
   const { isAuth, loading } = UserData();
@@ -23,7 +25,9 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/cart" element={isAuth ? <Cart /> : <Login />} />
+            <Route path="*" element={<NotFound />} />
             <Route path="/login" element={isAuth ? <Home /> : <Login />} />
             <Route path="/verify" element={isAuth ? <Home /> : <Verify />} />
           </Routes>

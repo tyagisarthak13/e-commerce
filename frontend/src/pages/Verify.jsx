@@ -14,6 +14,7 @@ import { UserData } from "@/context/UserContext";
 import { Loader } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CartData } from "@/context/CartContext";
 
 const Verify = () => {
   const [otp, setOtp] = useState("");
@@ -22,8 +23,10 @@ const Verify = () => {
 
   const { btnLoading, loginUser, verifyUser } = UserData();
 
+  const { fetchCart } = CartData();
+
   const submitHandler = () => {
-    verifyUser(Number(otp), navigate);
+    verifyUser(Number(otp), navigate, fetchCart);
   };
 
   const [timer, setTimer] = useState(90);

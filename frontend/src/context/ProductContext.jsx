@@ -33,6 +33,23 @@ export const ProductProvider = ({ children }) => {
     }
   }
 
+  const [product, setProduct] = useState([]);
+  const [relatedProduct, setRelatedProduct] = useState([]);
+
+  async function fetchProduct(id) {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`${server}/api/product/${id}`);
+
+      setProduct(data.product);
+      setRelatedProduct(data.relatedProduct);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchProducts();
   }, [search, category, page, price]);
@@ -53,6 +70,9 @@ export const ProductProvider = ({ children }) => {
         setPrice,
         page,
         setPage,
+        fetchProduct,
+        product,
+        relatedProduct,
       }}
     >
       {children}

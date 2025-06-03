@@ -11,14 +11,17 @@ import {
 } from "./ui/dropdown-menu";
 import { ModeToggle } from "./mode-toggle";
 import { UserData } from "@/context/UserContext";
+import { CartData } from "@/context/CartContext";
 
 const Navbar = () => {
   const { isAuth, logoutUser } = UserData();
 
+  const { totalItem, setTotalItem } = CartData();
+
   const navigate = useNavigate();
 
   const logoutHandler = () => {
-    logoutUser(navigate);
+    logoutUser(navigate, setTotalItem);
   };
 
   return (
@@ -38,7 +41,7 @@ const Navbar = () => {
           >
             <ShoppingCart className="w-6 h-6" />
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-              5
+              {totalItem ? totalItem : 0}
             </span>
           </li>
           <li className="cursor-pointer">

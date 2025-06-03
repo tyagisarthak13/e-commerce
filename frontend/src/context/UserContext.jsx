@@ -26,7 +26,7 @@ export const UserProvider = ({ children }) => {
       setBtnLoading(false);
     }
   }
-  async function verifyUser(otp, navigate) {
+  async function verifyUser(otp, navigate, fetchCart) {
     setBtnLoading(true);
     const email = localStorage.getItem("email");
     try {
@@ -46,6 +46,7 @@ export const UserProvider = ({ children }) => {
         secure: true,
         path: "/",
       });
+      fetchCart();
     } catch (error) {
       toast.error(error.response.data.message);
       setBtnLoading(false);
@@ -70,12 +71,13 @@ export const UserProvider = ({ children }) => {
     }
   }
 
-  function logoutUser(navigate) {
+  function logoutUser(navigate, setTotalItem) {
     Cookies.set("token", null);
     setUser([]);
     setIsAuth(false);
     navigate("/login");
     toast.success("Logged out");
+    setTotalItem(0);
   }
 
   useEffect(() => {
