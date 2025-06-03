@@ -10,15 +10,16 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { ModeToggle } from "./mode-toggle";
+import { UserData } from "@/context/UserContext";
 
 const Navbar = () => {
+  const { isAuth, logoutUser } = UserData();
+
   const navigate = useNavigate();
 
   const logoutHandler = () => {
-    alert("Logged out");
+    logoutUser(navigate);
   };
-
-  const isAuth = true;
 
   return (
     <div className="z-50 sticky top-0 bg-background/50 border-b backdrop-blur">

@@ -61,7 +61,7 @@ export const UserProvider = ({ children }) => {
       });
 
       setIsAuth(true);
-      setUser(data.user);
+      setUser(data);
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -70,13 +70,29 @@ export const UserProvider = ({ children }) => {
     }
   }
 
+  function logoutUser(navigate) {
+    Cookies.set("token", null);
+    setUser([]);
+    setIsAuth(false);
+    navigate("/login");
+    toast.success("Logged out");
+  }
+
   useEffect(() => {
     fetchUser();
   }, []);
 
   return (
     <UserContext.Provider
-      value={{ user, loading, btnLoading, isAuth, loginUser, verifyUser }}
+      value={{
+        user,
+        loading,
+        btnLoading,
+        isAuth,
+        loginUser,
+        verifyUser,
+        logoutUser,
+      }}
     >
       {children}
       <Toaster />
