@@ -47,13 +47,53 @@ export const CartProvider = ({ children }) => {
     }
   }
 
+  async function updateCart(action, id) {
+    try {
+      const { data } = await axios.post(
+        `${server}/api/cart/update?action=${action}`,
+        { id },
+        {
+          headers: {
+            token,
+          },
+        }
+      );
+      fetchCart();
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  }
+
+  async function removeFromCart(id) {
+    try {
+      const { data } = await axios.get(`${server}/api/cart/remove/${id}`, {
+        headers: {
+          token,
+        },
+      });
+      toast.success(data.message);
+      fetchCart();
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  }
+
   useEffect(() => {
     fetchCart();
   }, []);
 
   return (
     <CartContext.Provider
-      value={{ cart, totalItem, subTotal, fetchCart, addToCart, setTotalItem }}
+      value={{
+        cart,
+        totalItem,
+        subTotal,
+        fetchCart,
+        addToCart,
+        setTotalItem,
+        updateCart,
+        removeFromCart,
+      }}
     >
       {children}
     </CartContext.Provider>
