@@ -3,6 +3,10 @@ import { Order } from "../models/order.js";
 import { Product } from "../models/product.js";
 import sendOrderConfirmation from "../utils/sendOrderConfirmation.js";
 import TryCatch from "../utils/trycatch.js";
+import Stripe from "stripe";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const newOrderCod = TryCatch(async (req, res) => {
   const { method, phone, address } = req.body;
@@ -140,3 +144,143 @@ export const getStats = TryCatch(async (req, res) => {
     data,
   });
 });
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export const newOrderOnline = async (req, res) => {
+  try {
+    const { method, phone, address } = req.body;
+
+    const cart = await Cart.find({ user: req.user._id }).populate("products");
+
+    if (!cart.length) {
+      return (
+        res.status(400),
+        json({
+          message: "Cart is empty",
+        })
+      );
+    }
+
+    const subTotal = cart.reduce(
+      (total, item) => total + item.product.price * item.quantity,
+      0
+    );
+
+    const lineItems = cart.map((item) => ({
+      price_data: {
+        currency: "inr",
+        product_data: {
+          name: item.product.title,
+          images: [item.product.images[0].url],
+        },
+        unit_amount: Math.round(item.product.price * 100),
+      },
+      quantity: item.quantity,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      success_url: `${process.env.FRONTEND_URL}/ordersuccess?session_id= {CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/cart`,
+      metadata: {
+        userId: req.user._id.toString(),
+        method,
+        phone,
+        address,
+        subTotal,
+      },
+    });
+
+    res.json({
+      url: session.url,
+    });
+  } catch (error) {
+    console.log("Error creating stripe session", error.message);
+    res.status(500).json({
+      message: "Failed to create payment session",
+    });
+  }
+};
+
+export const verifyPayment = async (req, res) => {
+  const { sessionsId } = req.body;
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionsId);
+
+    const { userId, method, phone, address, subTotal } = session.metadata;
+
+    const cart = await Cart.find({ user: userId }).populate("products");
+
+    const items = cart.map((i) => {
+      return {
+        product: i.product._id,
+        name: i.product.title,
+        price: i.product.price,
+        quantity: i.product.quantity,
+      };
+    });
+
+    if (cart.length === 0) {
+      return (
+        res.status(400),
+        json({
+          message: "Cart is empty",
+        })
+      );
+    }
+    const existingOrder = await Order.findOne({ paymentInfo: sessionsId });
+    if (!existingOrder) {
+      const order = await Order.create({
+        items: cart.map((item) => ({
+          product: item.product._id,
+          quantity: i.quantity,
+        })),
+        method,
+        user: userId,
+        phone,
+        address,
+        subTotal,
+        paidAt: new Date(),
+        paymentInfo: sessionsId,
+      });
+
+      for (let i of order.items) {
+        const product = await Product.findById(i.product);
+
+        if (product) {
+          product.stock -= i.quantity;
+          product.sold += i.quantity;
+
+          await product.save();
+        }
+      }
+
+      await Cart.deleteMany({
+        user: req.user._id,
+      });
+
+      await sendOrderConfirmation({
+        email: req.user.email,
+        subject: "Order Confirmation",
+        orderId: order._id,
+        products: items,
+        totalAmount: subTotal,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "Order created successfully",
+        order,
+      });
+    }
+  } catch (error) {
+    console.log("Error verifying payment", error.message);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
