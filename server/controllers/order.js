@@ -151,7 +151,7 @@ export const newOrderOnline = async (req, res) => {
   try {
     const { method, phone, address } = req.body;
 
-    const cart = await Cart.find({ user: req.user._id }).populate("products");
+    const cart = await Cart.find({ user: req.user._id }).populate("product");
 
     if (!cart.length) {
       return (
@@ -206,14 +206,14 @@ export const newOrderOnline = async (req, res) => {
 };
 
 export const verifyPayment = async (req, res) => {
-  const { sessionsId } = req.body;
+  const { sessionId } = req.body;
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionsId);
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     const { userId, method, phone, address, subTotal } = session.metadata;
 
-    const cart = await Cart.find({ user: userId }).populate("products");
+    const cart = await Cart.find({ user: userId }).populate("product");
 
     const items = cart.map((i) => {
       return {
@@ -225,19 +225,16 @@ export const verifyPayment = async (req, res) => {
     });
 
     if (cart.length === 0) {
-      return (
-        res.status(400),
-        json({
-          message: "Cart is empty",
-        })
-      );
+      return res.status(400).json({
+        message: "Cart is empty",
+      });
     }
-    const existingOrder = await Order.findOne({ paymentInfo: sessionsId });
+    const existingOrder = await Order.findOne({ paymentInfo: sessionId });
     if (!existingOrder) {
       const order = await Order.create({
         items: cart.map((item) => ({
           product: item.product._id,
-          quantity: i.quantity,
+          quantity: item.quantity,
         })),
         method,
         user: userId,
@@ -245,7 +242,7 @@ export const verifyPayment = async (req, res) => {
         address,
         subTotal,
         paidAt: new Date(),
-        paymentInfo: sessionsId,
+        paymentInfo: sessionId,
       });
 
       for (let i of order.items) {
