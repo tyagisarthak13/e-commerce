@@ -14,7 +14,7 @@ import { UserData } from "@/context/UserContext";
 import { CartData } from "@/context/CartContext";
 
 const Navbar = () => {
-  const { isAuth, logoutUser } = UserData();
+  const { isAuth, logoutUser, user } = UserData();
 
   const { totalItem, setTotalItem } = CartData();
 
@@ -60,9 +60,16 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <DropdownMenuItem onClick={() => navigate("/order")}>
+                    <DropdownMenuItem onClick={() => navigate("/orders")}>
                       Your order
                     </DropdownMenuItem>
+                    {user && user.role === "admin" && (
+                      <DropdownMenuItem
+                        onClick={() => navigate("/admin/dashboard")}
+                      >
+                        Dashboard
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={logoutHandler}>
                       Logout
                     </DropdownMenuItem>
