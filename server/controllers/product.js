@@ -1,6 +1,6 @@
 import { Product } from "../models/product.js";
 import bufferGenerator from "../utils/bufferGenerator.js";
-import TryCatch from "../utils/trycatch.js";
+import TryCatch from "../utils/Trycatch.js";
 import cloudinary from "cloudinary";
 
 export const createProduct = TryCatch(async (req, res) => {

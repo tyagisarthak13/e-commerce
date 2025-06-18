@@ -2,7 +2,7 @@ import { Cart } from "../models/cart.js";
 import { Order } from "../models/order.js";
 import { Product } from "../models/product.js";
 import sendOrderConfirmation from "../utils/sendOrderConfirmation.js";
-import TryCatch from "../utils/trycatch.js";
+import TryCatch from "../utils/Trycatch.js";
 import Stripe from "stripe";
 import dotenv from "dotenv";
 
